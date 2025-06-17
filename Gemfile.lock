@@ -1,7 +1,7 @@
 PATH
   remote: .
   specs:
-    buzz_logic (0.1.0)
+    buzz_logic (1.0.0)
 
 GEM
   remote: https://rubygems.org/
