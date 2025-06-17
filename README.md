@@ -49,7 +49,7 @@ require "buzz_logic"
 # Define some objects to evaluate against
 Student = Struct.new(:grade, :has_permission_slip) do
   def attributes
-    to_h.map { |k, v| [ k.to_s, v ] }.to_h
+    to_h.transform_keys(&:to_s)
   end
 end
 
