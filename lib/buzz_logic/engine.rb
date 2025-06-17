@@ -145,16 +145,18 @@ module BuzzLogic
     def resolve_attribute(object, attribute)
       raise EvaluationError, "Cannot access attribute on nil" if object.nil?
 
-      if object.respond_to?(attribute)
-        method = object.method(attribute)
-        return method.call
+      unless object.respond_to?(:attributes)
+        raise EvaluationError, "Object of type #{object.class} does not have an attributes method"
       end
 
-      raise EvaluationError, "Cannot access '#{attribute}' on object of type #{object.class}"
-    rescue NoMethodError
-      raise EvaluationError, "Object does not have attribute '#{attribute}'"
-    rescue => e
-      raise EvaluationError, "An error occurred while accessing attribute '#{attribute}': #{e.message}"
+      attrs = object.attributes
+      attr_name = attribute.to_s
+
+      if attrs.key?(attr_name)
+        attrs[attr_name]
+      else
+        raise EvaluationError, "Object of type #{object.class} does not have attribute '#{attr_name}'"
+      end
     end
 
     def perform_operation(op, left, right)

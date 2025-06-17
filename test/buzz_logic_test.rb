@@ -1,15 +1,35 @@
 require "test_helper"
 
 class BuzzLogicTest < Minitest::Test
+  UserAddress = Struct.new(:city, :zip) do
+    def attributes
+      to_h.transform_keys(&:to_s)
+    end
+  end
+  User = Struct.new(:name, :age, :member, :address) do
+    def destroy
+      raise "This method should not be called in the rules engine"
+    end
+
+    def attributes
+      to_h.transform_keys(&:to_s)
+    end
+  end
+  Fundraiser = Struct.new(:status, :goal, :team) do
+    def attributes
+      to_h.transform_keys(&:to_s)
+    end
+  end
+
   def setup
-    @user = OpenStruct.new(
-      name: "Alice",
-      age: 30,
-      member: true,
-      address: OpenStruct.new(city: "New York", zip: "10001")
+    @user = User.new(
+      "Alice",
+      30,
+      true,
+      UserAddress.new("New York", "10001")
     )
 
-    @fundraiser = OpenStruct.new(status: "active", goal: 1000.50, team: nil)
+    @fundraiser = Fundraiser.new("active", 1000.50, nil)
 
     @context = { "user" => @user, "fundraiser" => @fundraiser }
   end
@@ -139,7 +159,7 @@ class BuzzLogicTest < Minitest::Test
   def test_raises_evaluation_error_for_attribute_access_on_nil
     rule = "fundraiser.team.name == 'The Bees'"
     exception = assert_raises(BuzzLogic::EvaluationError) { BuzzLogic::RulesEngine.evaluate(rule, @context) }
-    assert_equal "An error occurred while accessing attribute 'name': Cannot access attribute on nil", exception.message
+    assert_equal "Cannot access attribute on nil", exception.message
   end
 
   def test_raises_evaluation_error_for_type_mismatches_during_comparison
@@ -154,9 +174,9 @@ class BuzzLogicTest < Minitest::Test
   end
 
   def test_does_not_allow_calling_methods_on_objects
-    malicious_rule = "user.destroy"
+    malicious_rule = "user.destroy > 3"
     exception = assert_raises(BuzzLogic::EvaluationError) { BuzzLogic::RulesEngine.evaluate(malicious_rule, @context) }
-    assert_equal "An error occurred while accessing attribute 'destroy': Cannot access 'destroy' on object of type OpenStruct", exception.message
+    assert_equal "Object of type BuzzLogicTest::User does not have attribute 'destroy'", exception.message
   end
 
   def test_prevents_calling_methods_with_arguments

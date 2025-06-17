@@ -44,16 +44,25 @@ The primary interface for the engine is the BuzzLogic::RulesEngine.evaluate meth
 ### Basic Example
 
 ```ruby
-require 'buzz_logic'
+require "buzz_logic"
 
 # Define some objects to evaluate against
-student = OpenStruct.new(grade: 5, has_permission_slip: true)
-fundraiser = OpenStruct.new(status: 'active', goal_amount: 500)
+Student = Struct.new(:grade, :has_permission_slip) do
+  def attributes
+    to_h.map { |k, v| [ k.to_s, v ] }.to_h
+  end
+end
+
+Fundraiser = Struct.new(:status, :goal_amount) do
+  def attributes
+    to_h.transform_keys(&:to_s)
+  end
+end
 
 # The context maps the names used in the rule to the objects
 context = {
-  'student' => student,
-  'fundraiser' => fundraiser
+  "student" => Student.new(grade: 5, has_permission_slip: true),
+  "fundraiser" => Fundraiser.new(status: 'active', goal_amount: 500)
 }
 
 # Define a rule
@@ -85,6 +94,10 @@ puts "Is the student eligible? #{result}" # => true
 - Logical: `and`, `or`
 
 Parentheses `()` can be used to group expressions and control precedence.
+
+## Attributes
+
+The object must respond to the `attributes` method and return a hash with string keys (not symbols).
 
 ### Security
 
