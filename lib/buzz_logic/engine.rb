@@ -147,11 +147,7 @@ module BuzzLogic
 
       if object.respond_to?(attribute)
         method = object.method(attribute)
-        if method.arity == 0
-          return method.call
-        else
-          raise EvaluationError, "Access to method '#{attribute}' with arguments is not allowed."
-        end
+        return method.call
       end
 
       raise EvaluationError, "Cannot access '#{attribute}' on object of type #{object.class}"
